@@ -32,7 +32,6 @@ def lambda_handler(event, context):
     r = requests.get(url, auth=awsauth, json=query, headers=headers)
     
     r = r.json()
-    print(r)
     hits_list = r["hits"]["hits"]
     
     ip_dic = {}
@@ -45,7 +44,7 @@ def lambda_handler(event, context):
             
     for element in ip_dic:
         if len(ip_dic.get(element)) >= 5:
-            ban_list.append(element)
+            ban_list.append({"ip":element, "memo": 1})
             
     if len(ban_list) >= 1:
         con = pymysql.connect(host=os.environ.get('DBHOST').strip(), 
@@ -53,20 +52,20 @@ def lambda_handler(event, context):
         cur = con.cursor()
         for element in ban_list:
             
-            sql = "select * from require_list where ip='"+ element +"'"
+            sql = f"select * from require_list where ip='{element['ip']}'"
             cur.execute(sql)
             rows = cur.fetchall()
             if len(rows) != 0:
                 continue
-            sql = "select * from ban_list where ip='"+ element +"'"
+            sql = f"select * from ban_list where ip='{element['ip']}'"
             cur.execute(sql)
             rows = cur.fetchall()
             if len(rows) != 0:
                 continue
-            sql = "insert into ban_list values ('"+ element +"', '1', current_timestamp)"
+            sql = f"insert into ban_list values ('{element['ip']}','{element['memo']}', current_timestamp)"
             cur.execute(sql)
             data = {
-                'ip': element+'/32'
+                'ip': element["ip"] +'/32'
             }
             print(data)
             requests.post(os.environ.get('BACKEND')+"/lambda", json=data)
