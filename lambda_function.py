@@ -20,7 +20,7 @@ def lambda_handler(event, context):
         "query": {
             "range": {
                 "timestamp": {
-                    "gt":"now-60m"
+                    "gt":"now-20m"
                 }
             }
         },
@@ -43,11 +43,25 @@ def lambda_handler(event, context):
             ip_dic[element["_source"]["client_ip"]].append(element)
             
     for element in ip_dic:
-        if len(ip_dic.get(element)) >= 5:
+        if len(ip_dic.get(element)) >= 10:
             ban_list.append({"ip":element, "memo": 1})
+            continue
+        
+        for index, item in enumerate(ip_dic.get(element)):
+            if item["_source"]["user_agent"] == "-":
+                ban_list.append({"ip": element, "memo": 2})
+                break
+            else:
+                if index == 0:
+                    tempUserAgent = item["_source"]["user_agent"]
+                else:
+                    if tempUserAgent != item["_source"]["user_agent"]:
+                        ban_list.append({"ip": element, "memo": 3})
+                        break
+        
             
     if len(ban_list) >= 1:
-        con = pymysql.connect(host=os.environ.get('DBHOST').strip(), 
+        con = pymysql.connect(host=os.environ.get('DBHOST').strip(),
                       user=os.environ.get('USER'), password=os.environ.get('PASSWORD'), db=os.environ.get('DB'), charset='utf8')
         cur = con.cursor()
         for element in ban_list:
@@ -67,7 +81,6 @@ def lambda_handler(event, context):
             data = {
                 'ip': element["ip"] +'/32'
             }
-            print(data)
             requests.post(os.environ.get('BACKEND')+"/lambda", json=data)
             
         con.commit()
