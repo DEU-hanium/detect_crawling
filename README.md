@@ -1,10 +1,10 @@
 # 크롤링 트래픽 탐지 알고리즘
-## RDS를 이용한 데이터베이스 생성 
+## 1. RDS를 이용한 데이터베이스 생성 
 >mysql 사용<br>
 >![image](https://github.com/DEU-hanium/detect_crawling/assets/113816822/211730a8-036a-406d-a8cc-66a0ed5d4cf2)<br>
 >3306포트 사용 <br>
 >![image](https://github.com/DEU-hanium/detect_crawling/assets/113816822/2f9b5601-ee8d-4c8f-a4df-6accbd562d05))<br>
-## TABLE 생성 
+## 1.1 TABLE 생성 
 >CREATE TABLE ban_list ( <br>
   ip varchar(20) PRIMARY KEY,<br>
   memo varchar(20),<br>
@@ -15,7 +15,7 @@
     memo varchar(20),<br>
     created_at timestamp DEFAULT CURRENT_TIMESTAMP);<br>
 
-## Lambda를 이용해 opensearch-to-lambda
+## 2. Lambda를 이용해 opensearch-to-lambda
 >lambda 생성<br> 
 >![image](https://github.com/DEU-hanium/detect_crawling/assets/113816822/244e725e-a6e1-43c4-9aed-588993af702e)<br>
 >트리거 추가<br> 
@@ -150,3 +150,25 @@ def lambda_handler(event, context):
             
         con.commit()
         con.close()
+## 2.2 Lambda 코드 업로드
+
+> - 위 코드에서 Lambda Python 기본 내장 모듈은 boto3, gzip, re 이고 나머지 **requests, requests_aws4auth 모듈은 내장모듈이 아니므로 직접 pip install 하여 압축해서 올려야된다.**
+> - lambda 코드가 있는 폴더로 이동
+
+```bash
+cd s3-to-opensearch
+
+pip install --target ./package requests
+pip install --target ./package requests_aws4auth
+
+cd package
+zip -r ../lambda.zip .
+
+cd ..
+zip -g lambda.zip lambda_function.py
+```
+
+> 생성된 zip파일과 함께 람다 함수를 생성한다.
+
+
+<br>
