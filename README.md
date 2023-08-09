@@ -14,11 +14,11 @@
 >CREATE TABLE require_list (
     ip varchar(20) PRIMARY KEY,
     memo varchar(20),
-    created_at timestamp DEFAULT CURRENT_TIMESTAMP
-);
+    created_at timestamp DEFAULT CURRENT_TIMESTAMP);<br>
+
 ## Lambda를 이용해 opensearch-to-lambda
->lambda 생성 
-![image](https://github.com/DEU-hanium/detect_crawling/assets/113816822/244e725e-a6e1-43c4-9aed-588993af702e)
->트리거 추가
->![image](https://github.com/DEU-hanium/detect_crawling/assets/113816822/82539bd8-1255-46bf-8a7d-62429931e8d8)
+>lambda 생성<br> 
+>![image](https://github.com/DEU-hanium/detect_crawling/assets/113816822/244e725e-a6e1-43c4-9aed-588993af702e)<br>
+>트리거 추가<br> 
+>![image](https://github.com/DEU-hanium/detect_crawling/assets/113816822/82539bd8-1255-46bf-8a7d-62429931e8d8)<br> 
 
