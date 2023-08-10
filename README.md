@@ -168,7 +168,7 @@ cd ..
 zip -g lambda.zip lambda_function.py
 ```
 
-> 생성된 zip파일과 함께 람다 함수를 생성한다.
+> 생성된 zip파일과 함께 람다 함수를 생성합니다.
 
 
 <br>
