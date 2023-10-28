@@ -13,7 +13,6 @@ awsauth = AWS4Auth(credentials.access_key, credentials.secret_key, region, servi
 
 host = os.environ.get('OPENSEARCH')
 
-
 def lambda_handler(event, context):
     index = 'logs'
     url = host + '/' + index + '/_search'
@@ -22,7 +21,7 @@ def lambda_handler(event, context):
         "query": {
             "range": {
                 "timestamp": {
-                    "gt":"now-20m"
+                    "gt":"now-10m"
                 }
             }
         },
@@ -49,13 +48,14 @@ def lambda_handler(event, context):
     # 크롤링 트래픽 판별
     for element in ip_dic:
         # 단순 테스트용 10회 이상 접속시 크롤링으로 판별
-        if len(ip_dic.get(element)) >= 10:
+        if len(ip_dic.get(element)) >= 100:
             ban_list.append({"ip":element, "memo": 1})
             continue
         
         for index, item in enumerate(ip_dic.get(element)):
             # user_agent가 없는 경우 크롤링으로 판별 
-            if item["_source"]["user_agent"] == "-":
+            user_agent_value = item["_source"]["user_agent"]
+            if user_agent_value == "-" or user_agent_value.startswith("curl"):
                 ban_list.append({"ip": element, "memo": 2})
                 break
             else:
@@ -67,24 +67,23 @@ def lambda_handler(event, context):
                         ban_list.append({"ip": element, "memo": 3})
                         break
         
-            
+    
     if len(ban_list) >= 1:
         con = pymysql.connect(host=os.environ.get('DBHOST').strip(),
                       user=os.environ.get('USER'), password=os.environ.get('PASSWORD'), db=os.environ.get('DB'), charset='utf8')
         cur = con.cursor()
         for element in ban_list:
-            
             # 허용된 ip인지 확인
-            sql = f"select * from require_list where ip='{element['ip']}'"
+            sql = f"select * from allow_list where ip='{element['ip']}'"
             cur.execute(sql)
             rows = cur.fetchall()
             if len(rows) != 0:
                 continue
-
             # 이미 ban_list에 있는 ip인지 확인
             sql = f"select * from ban_list where ip='{element['ip']}'"
             cur.execute(sql)
             rows = cur.fetchall()
+            
             if len(rows) != 0:
                 continue
 
@@ -108,6 +107,8 @@ def lambda_handler(event, context):
             result = response.content.decode()
             result = result.split("(")[1].strip(")")
             result  = json.loads(result)
+            
+            print('aa')
             
             # opensearch에 ban_list 추가
             opensearchData = {
